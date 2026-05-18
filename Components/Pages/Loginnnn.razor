@@ -1,0 +1,12 @@
+﻿@page "/login"
+@inject NavigationManager Nav
+
+<button class="btn btn-primary" @onclick="Login">Login with Google</button>
+
+@code {
+   
+        void Login()
+        {
+            Nav.NavigateTo("authentication/google?returnUrl=/protected");
+        }
+}

@@ -1,0 +1,85 @@
+﻿@page "/cart"
+@using BlazorApp2.Models
+@using BlazorApp2.Services
+@inject CartService CartService
+@inject OrderService OrderService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<h3 class="text-center my-4">🛒 Your Grocery Cart</h3>
+
+<div class="container">
+
+    @if (items.Count == 0)
+    {
+        <div class="alert alert-warning text-center" style="background-color:#e0f7f7; color:#004d4d; border-color:#20b2aa;">
+            Your cart is empty
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered" style="border-color:#20b2aa;">
+            <thead style="background-color:#20b2aa; color:#fff;">
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var i in items)
+                {
+                    <tr>
+                        <td>@i.Product.Name</td>
+                        <td>@i.Quantity</td>
+                        <td>Rs. @i.TotalPrice</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm"
+                                    @onclick="() => Remove(i.Product)">
+                                ✖
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <h5 class="text-end" style="color:#004d4d;">Grand Total: Rs. @CartService.GrandTotal()</h5>
+
+        <div class="text-center mt-4">
+            <button class="btn btn-success" style="background-color:#20b2aa; border-color:#008080; color:#fff;"
+                    @onclick="Checkout">
+                Confirm Order
+            </button>
+        </div>
+    }
+
+    <div class="text-center mt-3">
+        <button class="btn btn-outline-dark"
+                style="border-color:#008080; color:#008080;"
+                @onclick='() => Navigation.NavigateTo("/home")'>
+            ⬅ Back Home
+        </button>
+    </div>
+</div>
+
+@code {
+    List<CartItem> items = new();
+
+    protected override void OnInitialized()
+    {
+        items = CartService.GetCart();
+    }
+
+    void Remove(Product p)
+    {
+        CartService.Remove(p);
+    }
+
+    void Checkout()
+    {
+        // Navigate to the new multi-item order form page
+        Navigation.NavigateTo("/cartorderform");
+    }
+}

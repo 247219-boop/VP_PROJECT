@@ -1,0 +1,86 @@
+﻿@page "/product/{Id:int}"
+@using BlazorApp2.Services
+@using BlazorApp2.Models
+@inject ProductDbService ProductDbService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+
+    @if (product == null)
+    {
+        <div class="text-center p-5 rounded-4 shadow-sm"
+             style="background:#e0f7f7; border:2px dashed #20b2aa; color:#004d4d;">
+            <h4>Product Not Found</h4>
+            <button class="btn mt-3 fw-bold px-4 py-2 rounded-pill"
+                    style="background:#20b2aa; color:white;"
+                    @onclick="GoBack">
+                ⬅ Back to Home
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Product Card -->
+        <div class="mx-auto p-4 rounded-4 shadow-lg"
+             style="max-width:700px; background:#e0f7f7; border:2px dotted #20b2aa;">
+
+            <!-- Product Image Top -->
+            <div class="text-center mb-4">
+                <img src="@product.ImageUrl"
+                     class="img-fluid rounded-4 shadow-sm product-img"
+                     style="max-height:350px; border:1px solid #20b2aa;" />
+            </div>
+
+            <!-- Product Info Bottom -->
+            <div class="text-center">
+                <h2 class="fw-bold mb-2" style="color:#008080;">@product.Name</h2>
+                <div style="width:100px; height:3px; background:#20b2aa; margin:auto; margin-bottom:15px;"></div>
+
+                <p class="mb-3" style="color:#004d4d;">@product.Description</p>
+
+                <h3 class="fw-bold mb-4" style="color:#008080;">Rs. @product.Price</h3>
+
+                <div class="d-flex justify-content-center gap-3">
+                    <button class="btn fw-bold px-4 py-2 rounded-pill"
+                            style="background:#20b2aa; color:white;"
+                            @onclick="OrderNow">
+                        🛒 Order Now
+                    </button>
+
+                    <button class="btn fw-bold px-4 py-2 rounded-pill"
+                            style="background:transparent; border:1px solid #20b2aa; color:#004d4d;"
+                            @onclick="GoBack">
+                        ⬅ Back
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    }
+</div>
+
+<style>
+    .product-img {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .product-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,128,128,0.4);
+            cursor: pointer;
+        }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    Product product;
+
+    protected override void OnInitialized()
+    {
+        product = ProductDbService.GetProductById(Id);
+    }
+
+    void GoBack() => Navigation.NavigateTo("/home");
+    void OrderNow() => Navigation.NavigateTo($"/orderform/{Id}");
+}

@@ -1,0 +1,81 @@
+﻿@inherits LayoutComponentBase
+
+<div class="layout-wrapper">
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg grocery-nav">
+        <div class="container">
+
+            <a class="navbar-brand brand-text" href="/">CARTIFY</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navMenu">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">HOME</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/orders">ORDERS</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- BODY -->
+    <div class="content-wrapper">
+        @Body
+    </div>
+
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .layout-wrapper {
+        min-height: 100vh;
+        width: 100%;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* NAVBAR */
+    .grocery-nav {
+        background: rgba(32, 178, 170, 0.95);
+        border-bottom: 1px solid #008080;
+        box-shadow: 0 2px 12px rgba(0, 128, 128, 0.2);
+    }
+
+    .brand-text {
+        font-weight: 700;
+        color: #004d4d !important;
+        letter-spacing: 1px;
+        font-size: 1.4rem;
+    }
+
+    .nav-link {
+        color: #006666 !important;
+        font-weight: 500;
+        padding: 8px 18px;
+        transition: 0.3s;
+    }
+
+        .nav-link:hover {
+            color: #20b2aa !important;
+            text-shadow: 0 0 6px #20b2aa;
+        }
+
+    /* BODY */
+    .content-wrapper {
+        width: 100%;
+        min-height: calc(100vh - 70px);
+        padding: 0;
+        margin: 0;
+    }
+</style>

@@ -1,0 +1,128 @@
+﻿@page "/home"
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="text-center mb-5 p-4 rounded-4 shadow-sm"
+         style="background:linear-gradient(90deg,#20b2aa,#008080); color:#fff;">
+        <h2 class="fw-bold">🛒 AIML Marché</h2>
+        <p style="opacity:0.85;">Choose a category</p>
+    </div>
+
+    <!-- Categories -->
+    <div class="row g-4">
+
+        <div class="col-md-3">
+            <div class="card category-card" @onclick="() => OpenCategory(1)">
+                <img src="/images/kitchen.jpg" />
+                <div class="card-body text-center fw-bold" style="color:#004d4d;">Kitchen</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card category-card" @onclick="() => OpenCategory(2)">
+                <img src="/images/bathroom.jpeg" />
+                <div class="card-body text-center fw-bold" style="color:#004d4d;">Bathroom</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card category-card" @onclick="() => OpenCategory(3)">
+                <img src="/images/fruits.jpg" />
+                <div class="card-body text-center fw-bold" style="color:#004d4d;">Fruits</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card category-card" @onclick="() => OpenCategory(4)">
+                <img src="/images/snacks.jpeg" />
+                <div class="card-body text-center fw-bold" style="color:#004d4d;">Snacks</div>
+            </div>
+        </div>
+        <!-- Vegetables -->
+        <div class="col-md-3">
+            <div class="card category-card" @onclick="() => OpenCategory(5)">
+                <img src="/images/vegies.jpeg" />
+                <div class="card-body text-center fw-bold">Vegetables</div>
+            </div>
+        </div>
+        <!-- Dairy -->
+        <div class="col-md-3">
+            <div class="card category-card" @onclick="() => OpenCategory(6)">
+                <img src="/images/dairy.jpeg" />
+                <div class="card-body text-center fw-bold">Dairy</div>
+            </div>
+        </div>
+        <!-- Beverages -->
+        <div class="col-md-3">
+            <div class="card category-card" @onclick="() => OpenCategory(7)">
+                <img src="/images/bevarages.jpeg" />
+                <div class="card-body text-center fw-bold">Beverages</div>
+            </div>
+        </div>
+        <!-- Frozen Foods -->
+        <div class="col-md-3">
+            <div class="card category-card" @onclick="() => OpenCategory(8)">
+                <img src="/images/frozen.jpeg" />
+                <div class="card-body text-center fw-bold">Frozen Foods</div>
+            </div>
+        </div>
+        <!-- Bakery Items -->
+        <div class="col-md-3">
+            <div class="card category-card" @onclick="() => OpenCategory(9)">
+                <img src="/images/bakery.jpeg" />
+                <div class="card-body text-center fw-bold">Bakery Items</div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- Buttons -->
+    <div class="text-center mt-5">
+        <button class="btn" style="border-color:#008080; color:#008080; margin-right:0.5rem;"
+                @onclick='() => Navigation.NavigateTo("/orders")'>
+            📜 Order History
+        </button>
+
+        <button class="btn" style="border-color:#008080; color:#008080; margin-right:0.5rem;"
+                @onclick='() => Navigation.NavigateTo("/")'>
+            ⬅ Logout
+        </button>
+
+        <button class="btn" style="background-color:#20b2aa; border-color:#008080; color:#fff;"
+                @onclick='() => Navigation.NavigateTo("/cart")'>
+            🛒 Cart
+        </button>
+    </div>
+</div>
+
+<style>
+    .category-card {
+        cursor: pointer;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.2s;
+        border: 1px solid #20b2aa;
+    }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,128,128,0.2);
+        }
+
+        .category-card img {
+            height: 180px;
+            width: 100%;
+            object-fit: fill;
+        }
+</style>
+
+@code {
+    void OpenCategory(int id)
+    {
+        Navigation.NavigateTo($"/category/{id}");
+    }
+}

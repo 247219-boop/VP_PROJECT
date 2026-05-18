@@ -1,0 +1,74 @@
+﻿@page "/orders"
+@using BlazorApp2.Models
+@using BlazorApp2.Services
+@inject OrderService OrderService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+
+    <!-- Header Banner -->
+    <div class="p-4 text-center mb-4 rounded-4 shadow-sm"
+         style="background:linear-gradient(100deg,#20b2aa,#008080); color:#fff;">
+        <h2 class="fw-bold">🛒 Orders Overview</h2>
+        <p class="m-0" style="opacity:0.85;">Fresh groceries delivered daily</p>
+    </div>
+
+    @if (orders == null || orders.Count == 0)
+    {
+        <div class="text-center p-5 rounded-4 shadow-sm"
+             style="background:#e0f7f7; border:2px dashed #20b2aa; color:#004d4d;">
+            <h5>No orders found!</h5>
+            <p>Looks like nobody has ordered yet 🛒</p>
+        </div>
+    }
+    else
+    {
+        <!-- Card Grid -->
+        <div class="row g-4">
+            @foreach (var o in orders)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="p-4 rounded-4 shadow"
+                         style="background:#e0f7f7; border:1px solid #20b2aa;">
+
+                        <!-- Order Header -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold" style="color:#004d4d;">Order #@o.OrderId</span>
+                            <span class="badge rounded-pill px-3"
+                                  style="background:#b2dfdb; color:#004d4d;">
+                                @o.Quantity x
+                            </span>
+                        </div>
+
+                        <!-- Product Name -->
+                        <h5 class="fw-bold" style="color:#008080;">
+                            @o.ProductName
+                        </h5>
+
+                        <!-- Price -->
+                        <p class="mb-3" style="color:#004d4d;">
+                            Total: Rs. @o.TotalPrice
+                        </p>
+
+                        <!-- Button -->
+                        <button class="btn w-100 rounded-pill fw-semibold"
+                                style="background:#20b2aa; color:white;"
+                                @onclick='() => Navigation.NavigateTo($"/orderconfirmed/{o.OrderId}")'>
+                            View Details →
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    List<Order> orders;
+
+    protected override void OnInitialized()
+    {
+        orders = OrderService.GetAllOrders();
+    }
+}

@@ -1,0 +1,141 @@
+﻿@page "/register"
+@inject NavigationManager Nav
+@inject HttpClient Http
+@rendermode InteractiveServer
+
+<div class="login-bg">
+    <div class="login-form text-center">
+        <h2 class="fw-bold mb-2 text-white">🛒 AIML Marché</h2>
+        <p class="text-white" style="opacity:0.85;">Create a new account</p>
+
+        <EditForm Model="model" OnValidSubmit="RegisterUser">
+            <DataAnnotationsValidator />
+
+            <input class="form-control mb-2"
+                   placeholder="Username"
+                   @bind="model.Username" />
+
+            <input class="form-control mb-2"
+                   placeholder="Email"
+                   @bind="model.Email" />
+
+            <input class="form-control mb-2"
+                   type="password"
+                   placeholder="Password"
+                   @bind="model.Password" />
+
+            <input class="form-control mb-3"
+                   type="password"
+                   placeholder="Confirm Password"
+                   @bind="model.ConfirmPassword" />
+
+            <button type="submit"
+                    class="btn w-100 fw-bold mb-2"
+                    style="background-color:#20b2aa; border-color:#008080; color:white; font-size:1.1rem;">
+                Register
+            </button>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(Error))
+        {
+            <p class="text-danger mt-2">@Error</p>
+        }
+
+        <p class="text-light mt-3 text-center">
+            Already have an account?
+            <a href="/" class="text-info fw-bold">Login</a>
+        </p>
+    </div>
+</div>
+
+<style>
+    .login-bg {
+        min-height: 100vh;
+        width: 100%;
+        background-image: url('/images/bend.jpg.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+    }
+
+    .login-form {
+        width: 350px;
+        background-color: rgba(0, 0, 0, 0.35);
+        padding: 30px;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        padding: 10px;
+        width: 100%;
+    }
+
+        .form-control:focus {
+            border-color: #20b2aa;
+            box-shadow: 0 0 0 0.2rem rgba(32,178,170,0.25);
+            outline: none;
+        }
+</style>
+
+@code {
+    private RegisterModel model = new();
+    private string Error = "";
+
+    private async Task RegisterUser()
+    {
+        Error = "";
+
+        if (model.Password != model.ConfirmPassword)
+        {
+            Error = "Passwords do not match.";
+            return;
+        }
+
+        try
+        {
+            var apiUrl = $"{Nav.BaseUri}api/auth/register";
+
+            var formData = new MultipartFormDataContent
+        {
+            { new StringContent(model.Username), "username" },
+            { new StringContent(model.Email), "email" },
+            { new StringContent(model.Password), "password" }
+        };
+
+            var response = await Http.PostAsync(apiUrl, formData);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Nav.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                var msg = await response.Content.ReadAsStringAsync();
+                // Clean quotes if any
+                Error = msg.Trim('"');
+            }
+        }
+        catch (Exception ex)
+        {
+            Error = $"Registration failed: {ex.Message}";
+        }
+    }
+
+
+    class RegisterModel
+    {
+        public string Username { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

@@ -1,0 +1,94 @@
+﻿@page "/orderconfirmed/{OrderId:int}"
+@using BlazorApp2.Services
+@using BlazorApp2.Models
+@inject OrderService OrderService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+
+    <!-- Header Banner -->
+    <div class="rounded-4 p-4 text-center mb-5 shadow"
+         style="background:linear-gradient(180deg, #20b2aa, #008080); color:#fff;">
+        <h1 class="fw-bold">Thank You For Your Order!</h1>
+        <p style="opacity:0.85;">Fresh groceries are on their way 🛒</p>
+    </div>
+
+    @if (order == null)
+    {
+        <div class="alert alert-warning text-center p-4 rounded-4 fw-bold" style="background-color:#e0f7f7; color:#004d4d; border-color:#20b2aa;">
+            Order was not found.
+        </div>
+    }
+    else
+    {
+        <!-- Order Detail Card -->
+        <div class="mx-auto p-4 rounded-4 shadow-lg"
+             style="max-width:650px; background:#e0f7f7; border:2px dashed #20b2aa;">
+
+            <!-- Icon -->
+            <div class="text-center mb-3">
+                <div style="font-size:50px;">🛒</div>
+            </div>
+
+            <!-- Order Information Grid -->
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <div class="p-3 rounded-3" style="background:#b2dfdb;">
+                        <strong style="color:#004d4d;">Product</strong><br />
+                        @order.ProductName
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="p-3 rounded-3" style="background:#b2dfdb;">
+                        <strong style="color:#004d4d;">Quantity</strong><br />
+                        @order.Quantity
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="p-3 rounded-3" style="background:#b2dfdb;">
+                        <strong style="color:#004d4d;">Total Price</strong><br />
+                        Rs. @order.TotalPrice
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Divider -->
+            <div class="mt-4 mb-3" style="height:4px; background:#20b2aa; opacity:0.5;"></div>
+
+            <!-- Success Message -->
+            <div class="text-center mb-4">
+                <span class="px-4 py-2 rounded-pill"
+                      style="background:#20b2aa; color:white; font-weight:600;">
+                    Order Confirmed ✔
+                </span>
+            </div>
+
+            <!-- Button -->
+            <div class="text-center">
+                <button class="btn fw-bold px-5 py-2 rounded-pill"
+                        style="background:#008080; color:white;"
+                        @onclick="GoHome">
+                    Back To Grocery 🏠
+                </button>
+            </div>
+
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int OrderId { get; set; }
+    Order order;
+
+    protected override void OnInitialized()
+    {
+        order = OrderService.GetOrderById(OrderId);
+    }
+
+    void GoHome() => Navigation.NavigateTo("/");
+}

@@ -1,0 +1,137 @@
+﻿@page "/cartorderform"
+@using BlazorApp2.Models
+@using BlazorApp2.Services
+@inject CartService CartService
+@inject OrderService OrderService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+
+    <h2 class="text-center mb-4">🛒 Place Your Order</h2>
+
+    @if (!cartItems.Any())
+    {
+        <div class="alert alert-warning text-center">
+            Your cart is empty!
+        </div>
+    }
+    else
+    {
+        <!-- ✅ FIXED FORM -->
+        <EditForm Model="@order" OnValidSubmit="SubmitOrder">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label>Full Name</label>
+                <InputText class="form-control" @bind-Value="order.CustomerName" />
+            </div>
+
+            <div class="mb-3">
+                <label>Email</label>
+                <InputText class="form-control" @bind-Value="order.Email" />
+            </div>
+
+            <div class="mb-3">
+                <label>Contact</label>
+                <InputText class="form-control" @bind-Value="order.Contact" />
+            </div>
+
+            <div class="mb-3">
+                <label>Address</label>
+                <InputText class="form-control" @bind-Value="order.Address" />
+            </div>
+
+            <!-- PAYMENT METHOD -->
+            <div class="border p-3 mb-3">
+                <h5>Payment Method</h5>
+
+                <InputRadioGroup @bind-Value="paymentMethod">
+                    <div>
+                        <InputRadio Value="@("CashOnDelivery")" />
+                        <label class="ms-2">Cash on Delivery</label>
+                    </div>
+
+                    <div>
+                        <InputRadio Value="@("Online")" />
+                        <label class="ms-2">Online Payment</label>
+                    </div>
+                </InputRadioGroup>
+
+                @if (paymentMethod == "Online")
+                {
+                    <div class="mt-3">
+                        <InputText class="form-control mb-2" placeholder="Card Number" />
+                        <InputText class="form-control mb-2" placeholder="MM/YY" />
+                        <InputText class="form-control" placeholder="CVV" />
+                    </div>
+                }
+            </div>
+
+            <!-- CART TABLE -->
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in cartItems)
+                    {
+                        <tr>
+                            <td>@item.Product.Name</td>
+                            <td>@item.Quantity</td>
+                            <td>Rs. @item.TotalPrice</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <h5 class="text-end">
+                Grand Total: Rs. @CartService.GrandTotal()
+            </h5>
+
+            <button class="btn btn-success w-100 mt-3" type="submit">
+                Confirm Order
+            </button>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private Order order = new Order();
+    private List<CartItem> cartItems = new();
+    private string paymentMethod = "CashOnDelivery";
+
+    protected override void OnInitialized()
+    {
+        cartItems = CartService.GetCart();
+    }
+
+   
+    
+        private void SubmitOrder(EditContext context)
+    {
+        foreach (var item in cartItems)
+        {
+            OrderService.PlaceOrder(new Order
+            {
+                CustomerName = order.CustomerName,
+                Email = order.Email,
+                Contact = order.Contact,
+                Address = order.Address,
+                ProductName = item.Product.Name,
+                Quantity = item.Quantity,
+                TotalPrice = item.TotalPrice,
+                PaymentMethod = paymentMethod
+            });
+        }
+
+        CartService.ClearCart();
+        Navigation.NavigateTo("/orders", true);
+    }
+
+    
+}

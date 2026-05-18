@@ -1,0 +1,106 @@
+﻿@using BlazorApp2.Services
+@using BlazorApp2.Models
+@inject RecipeService RecipeService
+@rendermode InteractiveServer
+
+<div class="container mt-4">
+    <div class="mx-auto rounded-4 shadow p-4"
+         style="max-width:700px; background:#e0f7f7; border:2px dotted #20b2aa;">
+
+        <h3 class="fw-bold text-center mb-1" style="color:#008080;">🍽️ AI Recipe Finder</h3>
+        <p class="text-center mb-4" style="color:#004d4d;">Enter a dish name to get a recipe with matching ingredients from our store</p>
+
+        <div class="d-flex gap-2 mb-4">
+            <input class="form-control rounded-3"
+                   style="background:#b2dfdb; border:1px solid #20b2aa;"
+                   placeholder="e.g. Biryani, Pasta, Salad..."
+                   @bind="dishName"
+                   @bind:event="oninput"
+                   @onkeydown="HandleKey" />
+            <button class="btn fw-bold px-4 rounded-pill"
+                    style="background:#20b2aa; color:white; white-space:nowrap;"
+                    @onclick="GetRecipe"
+                    disabled="@isLoading">
+                @(isLoading ? "Finding..." : "Get Recipe 🔍")
+            </button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert rounded-3" style="background:#ffe0e0; border:1px solid #f44336; color:#b71c1c;">
+                ⚠️ @errorMessage
+            </div>
+        }
+
+        @if (result != null)
+        {
+            <!-- Recipe Procedure -->
+            <div class="mb-4 p-3 rounded-3" style="background:white; border:1px solid #20b2aa;">
+                <h5 class="fw-bold mb-3" style="color:#008080;">📋 Recipe for @result.DishName</h5>
+                <p style="color:#004d4d; white-space:pre-line;">@result.Procedure</p>
+            </div>
+
+            <!-- Matched Ingredients -->
+            @if (result.Ingredients != null && result.Ingredients.Any())
+            {
+                <div>
+                    <h5 class="fw-bold mb-3" style="color:#008080;">🛒 Available in Our Store</h5>
+                    <div class="row g-3">
+                        @foreach (var item in result.Ingredients)
+                        {
+                            <div class="col-6 col-md-4">
+                                <div class="p-2 rounded-3 text-center shadow-sm"
+                                     style="background:white; border:1px solid #20b2aa;">
+                                    <img src="@item.ImageUrl"
+                                         style="width:60px; height:60px; object-fit:cover; border-radius:8px;"
+                                         onerror="this.src='/images/placeholder.jpg'" />
+                                    <p class="fw-bold mb-0 mt-1" style="color:#004d4d; font-size:0.85rem;">@item.Name</p>
+                                    <p style="color:#008080; font-size:0.8rem;">Rs. @item.Price</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p style="color:#004d4d;">No matching ingredients found in our store for this recipe.</p>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    string dishName = "";
+    bool isLoading = false;
+    string errorMessage = "";
+    RecipeResult result = null;
+
+    async Task GetRecipe()
+    {
+        if (string.IsNullOrWhiteSpace(dishName)) return;
+
+        isLoading = true;
+        errorMessage = "";
+        result = null;
+
+        try
+        {
+            result = await RecipeService.GetRecipeAsync(dishName);
+        }
+        catch (Exception ex)
+{
+    errorMessage = ex.Message; // ← show the real error instead of generic message
+    Console.WriteLine(ex.ToString());
+}
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    async Task HandleKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await GetRecipe();
+    }
+}

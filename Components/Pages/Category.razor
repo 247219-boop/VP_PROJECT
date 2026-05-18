@@ -1,0 +1,241 @@
+﻿@page "/category/{CategoryId:int}"
+
+@using BlazorApp2.Models
+@using BlazorApp2.Services
+
+@inject CartService CartService
+@inject ProductDbService ProductService
+@inject ExpiryDiscountService DiscountService
+@inject RecipeService RecipeService
+@inject NavigationManager Navigation
+
+@rendermode InteractiveServer
+
+<h3 class="text-center my-4" style="color:#008080;">Grocery Items</h3>
+
+<!-- Recipe AI Panel Toggle Button -->
+<button class="btn mb-3 recipe-btn" @onclick="ToggleRecipePanel">
+    @(showPanel ? "Close Recipe Panel" : "Open Recipe Panel")
+</button>
+
+<!-- Slide-in Recipe Panel -->
+<div class="recipe-panel @(showPanel ? "open" : "")">
+    <h5>AI Recipe Assistant</h5>
+
+    <input type="text"
+           class="form-control mb-2"
+           placeholder="Enter dish name"
+           @bind="recipeName" />
+
+    <button class="btn btn-success mb-3"
+            @onclick="FetchRecipe"
+            disabled="@isLoading">
+        @(isLoading ? "Fetching..." : "Get Recipe")
+    </button>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    @if (recipeResult != null)
+    {
+        <h6 class="fw-bold">@recipeResult.DishName</h6>
+
+        <p style="white-space: pre-line; word-break: break-word;">
+            @recipeResult.Procedure
+        </p>
+
+        <h6 class="mt-3">Select Ingredients</h6>
+
+        @if (recipeResult.Ingredients.Count == 0)
+        {
+            <div class="text-muted">No matching ingredients found in store.</div>
+        }
+        else
+        {
+            @foreach (var item in recipeResult.Ingredients)
+            {
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           @bind="item.IsSelected" />
+
+                    <label class="form-check-label">
+                        @item.Name – Rs.@item.Price
+                    </label>
+                </div>
+            }
+
+            <button class="btn btn-outline-success mt-3"
+                    @onclick="AddSelectedIngredients">
+                Add Selected to Cart
+            </button>
+        }
+    }
+</div>
+
+<style>
+    .recipe-panel {
+        position: fixed;
+        top: 0;
+        right: -400px;
+        width: 400px;
+        height: 100%;
+        background-color: #f0f9f9;
+        box-shadow: -3px 0 8px rgba(0,128,128,0.2);
+        padding: 20px;
+        transition: right 0.3s ease-in-out;
+        z-index: 1000;
+        overflow-y: auto;
+        overflow-x: hidden;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+        .recipe-panel.open {
+            right: 0;
+        }
+
+    .recipe-btn {
+        background-color: #20b2aa;
+        border-color: #008080;
+        color: #fff;
+    }
+
+        .recipe-btn:hover {
+            background-color: #008080;
+        }
+
+    .product-img {
+        height: 150px;
+        object-fit: contain;
+        background-color: #f8f9fa;
+        padding: 8px;
+    }
+   
+</style>
+
+<div class="container">
+    @if (products.Count == 0)
+    {
+        <div class="alert alert-warning text-center">
+            No products found
+        </div>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <div class="alert alert-success text-center">@message</div>
+        }
+
+        <div class="row g-4">
+            @foreach (var p in products)
+            {
+                <div class="col-md-4">
+                    <div class="card shadow rounded-4">
+                        <img src="@p.ImageUrl" class="card-img-top product-img" />
+
+                        <div class="card-body text-center">
+                            <h5>@p.Name</h5>
+
+                            <p>Rs. @p.FinalPrice</p>
+
+                            <button class="btn btn-success"
+                                    @onclick="() => Add(p.Id)">
+                                Add to Cart
+                            </button>
+
+                            <button class="btn btn-outline-primary ms-2"
+                                    @onclick="() => Order(p.Id)">
+                                Buy Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int CategoryId { get; set; }
+
+    List<Product> products = new();
+    string message = "";
+
+    bool showPanel = false;
+    string recipeName = "";
+    RecipeResult recipeResult;
+    bool isLoading = false;
+    string errorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        products = ProductService.GetProductsByCategory(CategoryId);
+        products.ForEach(p => DiscountService.Apply(p));
+    }
+
+    void ToggleRecipePanel()
+    {
+        showPanel = !showPanel;
+        // NO reset here → state preserved
+    }
+
+    async Task FetchRecipe()
+    {
+        if (string.IsNullOrWhiteSpace(recipeName)) return;
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            recipeResult = await RecipeService.GetRecipeAsync(recipeName);
+        }
+        catch (Exception ex)
+{
+    errorMessage = ex.Message; // ← real error
+    Console.WriteLine(ex.ToString());
+}
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    void AddSelectedIngredients()
+    {
+        foreach (var item in recipeResult.Ingredients.Where(i => i.IsSelected))
+        {
+            CartService.AddToCart(item);
+        }
+
+        message = "Selected ingredients added to cart!";
+        _ = HideMessageAfterDelay();
+    }
+
+    void Add(int id)
+    {
+        var product = ProductService.GetProductById(id);
+        if (product != null)
+        {
+            CartService.AddToCart(product);
+            message = $"{product.Name} added to cart!";
+            _ = HideMessageAfterDelay();
+        }
+    }
+
+    void Order(int id)
+    {
+        Navigation.NavigateTo($"/orderform/{id}");
+    }
+
+    async Task HideMessageAfterDelay()
+    {
+        await Task.Delay(2000);
+        message = "";
+        StateHasChanged();
+    }
+}

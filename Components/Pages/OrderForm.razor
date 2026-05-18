@@ -1,0 +1,185 @@
+﻿@page "/orderform/{ProductId:int}"
+@using BlazorApp2.Services
+@using BlazorApp2.Models
+@inject ProductDbService ProductDbService
+@inject OrderService OrderService
+@inject EmailService EmailService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+
+    <!-- Grocery Header -->
+    <div class="text-center mb-4 p-4 rounded-4 shadow-sm"
+         style="background:linear-gradient(90deg,#20b2aa,#008080); color:#fff;">
+        <h2 class="fw-bold">🛒 Grocery Order Form</h2>
+        <p style="opacity:0.85;">Fresh groceries delivered to your door</p>
+    </div>
+
+    @if (product == null)
+    {
+        <div class="alert alert-warning p-4 rounded-4 text-center"
+             style="border:2px dashed #20b2aa; background:#e0f7f7; color:#004d4d;">
+            Loading product details...
+        </div>
+    }
+    else
+    {
+        <!-- Center Box -->
+        <div class="mx-auto p-4 rounded-4 shadow"
+             style="max-width:650px; background:#e0f7f7; border:2px dotted #20b2aa;">
+
+            <!-- Product Details -->
+            <div class="text-center mb-4">
+                <h3 class="fw-bold" style="color:#004d4d;">@product.Name</h3>
+                <p class="fs-5 fw-semibold" style="color:#008080;">Rs. @product.Price</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger rounded-3">@errorMessage</div>
+            }
+
+            <EditForm Model="order" OnValidSubmit="SubmitOrder">
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label style="color:#004d4d;" class="fw-bold">Full Name</label>
+                        <InputText class="form-control rounded-3"
+                                   style="background:#b2dfdb; border:1px solid #20b2aa;"
+                                   @bind-Value="order.CustomerName"
+                                   placeholder="Your full name" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label style="color:#004d4d;" class="fw-bold">Email</label>
+                        <InputText type="email"
+                                   class="form-control rounded-3"
+                                   style="background:#b2dfdb; border:1px solid #20b2aa;"
+                                   @bind-Value="order.Email"
+                                   placeholder="example@gmail.com" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label style="color:#004d4d;" class="fw-bold">Contact Number</label>
+                        <InputText class="form-control rounded-3"
+                                   style="background:#b2dfdb; border:1px solid #20b2aa;"
+                                   @bind-Value="order.Contact"
+                                   placeholder="03xxxxxxxxx" />
+                    </div>
+
+                    <div class="col-12">
+                        <label style="color:#004d4d;" class="fw-bold">Address</label>
+                        <InputText class="form-control rounded-3"
+                                   style="background:#b2dfdb; border:1px solid #20b2aa;"
+                                   @bind-Value="order.Address"
+                                   placeholder="Delivery address" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label style="color:#004d4d;" class="fw-bold">Quantity</label>
+                        <InputNumber class="form-control rounded-3"
+                                     style="background:#b2dfdb; border:1px solid #20b2aa;"
+                                     @bind-Value="order.Quantity" min="1" />
+                    </div>
+                </div>
+
+                <!-- Button -->
+                <div class="text-center mt-4">
+                    <button class="btn fw-bold px-5 py-2 rounded-pill shadow"
+                            style="background:#20b2aa; color:white;"
+                            disabled="@isSubmitting">
+                        @(isSubmitting ? "Placing Order..." : "Confirm Order 🛒")
+                    </button>
+                </div>
+
+            </EditForm>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    Product product;
+    Order order = new();
+    bool isSubmitting = false;
+    string errorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        product = ProductDbService.GetProductById(ProductId);
+
+        if (product != null)
+        {
+            order.ProductId = product.Id;
+            order.ProductName = product.Name;
+            order.Quantity = 1;
+        }
+    }
+
+    async Task SubmitOrder()
+    {
+        isSubmitting = true;
+        errorMessage = "";
+
+        order.TotalPrice = product.Price * order.Quantity;
+        int id = OrderService.PlaceOrder(order);
+
+        try
+        {
+            string subject = $"Order Confirmed – {product.Name}";
+            string body = $@"
+                <div style='font-family:Arial,sans-serif; max-width:600px; margin:auto;'>
+                    <div style='background:linear-gradient(90deg,#20b2aa,#008080); padding:20px; text-align:center; border-radius:8px 8px 0 0;'>
+                        <h2 style='color:white; margin:0;'>🛒 Order Confirmed!</h2>
+                    </div>
+                    <div style='background:#e0f7f7; padding:20px; border-radius:0 0 8px 8px;'>
+                        <p>Hi <b>{order.CustomerName}</b>, your order has been placed successfully!</p>
+                        <table style='width:100%; border-collapse:collapse;'>
+                            <tr style='border-bottom:1px solid #20b2aa;'>
+                                <td style='padding:8px; color:#004d4d;'><b>Order ID</b></td>
+                                <td style='padding:8px;'>#{id}</td>
+                            </tr>
+                            <tr style='border-bottom:1px solid #20b2aa;'>
+                                <td style='padding:8px; color:#004d4d;'><b>Product</b></td>
+                                <td style='padding:8px;'>{product.Name}</td>
+                            </tr>
+                            <tr style='border-bottom:1px solid #20b2aa;'>
+                                <td style='padding:8px; color:#004d4d;'><b>Quantity</b></td>
+                                <td style='padding:8px;'>{order.Quantity}</td>
+                            </tr>
+                            <tr style='border-bottom:1px solid #20b2aa;'>
+                                <td style='padding:8px; color:#004d4d;'><b>Total Price</b></td>
+                                <td style='padding:8px;'>Rs. {order.TotalPrice}</td>
+                            </tr>
+                            <tr style='border-bottom:1px solid #20b2aa;'>
+                                <td style='padding:8px; color:#004d4d;'><b>Address</b></td>
+                                <td style='padding:8px;'>{order.Address}</td>
+                            </tr>
+                            <tr>
+                                <td style='padding:8px; color:#004d4d;'><b>Payment</b></td>
+                                <td style='padding:8px;'>{order.PaymentMethod}</td>
+                            </tr>
+                        </table>
+                        <p style='margin-top:20px; color:#008080; text-align:center;'>
+                            Thank you for shopping with <b>B.E.N.D Grocery</b>! 🛍️
+                        </p>
+                    </div>
+                </div>";
+
+            await EmailService.SendEmailAsync(order.Email, subject, body);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Email failed: {ex.Message}");
+            // Order still placed even if email fails
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+
+        Navigation.NavigateTo($"/orderconfirmed/{id}");
+    }
+}

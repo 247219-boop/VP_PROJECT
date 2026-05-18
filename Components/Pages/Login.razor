@@ -1,0 +1,143 @@
+﻿@page "/"
+@inject NavigationManager Nav
+@using System.Net.Http
+@using System.Net.Http.Json
+
+@rendermode InteractiveServer
+
+<div class="login-bg">
+    <div class="login-form text-center">
+        <h2 class="fw-bold mb-2 text-white">🛒 AIML Marché</h2>
+        <p class="text-white" style="opacity:0.85;">Swipe • Shop • Smile.</p>
+
+        <input @bind="Username" class="form-control mb-3" placeholder="Username" />
+        <input @bind="Password" type="password" class="form-control mb-3" placeholder="Password" />
+
+        <button class="btn w-100 fw-bold mb-2"
+                style="background-color:#20b2aa; border-color:#008080; color:#fff; font-size:1.1rem;"
+                @onclick="DoLogin">
+            Login
+        </button>
+
+        <button class="btn w-100 fw-bold mb-2"
+                style="background-color:#4285F4; border-color:#357ae8; color:#fff; font-size:1.1rem;"
+                @onclick="LoginWithGoogle">
+            Login with Google
+        </button>
+
+        <button class="btn btn-link text-decoration-none text-white"
+                type="button"
+                @onclick="GoToForgot">
+            Forgot Password?
+        </button>
+
+        <button class="btn btn-outline-light w-100 fw-bold mt-2"
+                @onclick="GoToRegister">
+            Register
+        </button>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <p class="text-danger mt-2">@ErrorMessage</p>
+        }
+    </div>
+</div>
+
+<style>
+    .login-bg {
+        min-height: 100vh;
+        width: 100%;
+        background-image: url('/images/bend.jpg.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+    }
+
+    .login-form {
+        width: 350px;
+        background-color: rgba(0, 0, 0, 0.35);
+        padding: 30px;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        padding: 10px;
+        width: 100%;
+    }
+
+        .form-control:focus {
+            border-color: #20b2aa;
+            box-shadow: 0 0 0 0.2rem rgba(32,178,170,0.25);
+            outline: none;
+        }
+</style>
+
+@code {
+    private string Username { get; set; } = "";
+    private string Password { get; set; } = "";
+    private string ErrorMessage { get; set; } = "";
+
+    [Inject] private HttpClient Http { get; set; }
+
+    private async Task DoLogin()
+    {
+        ErrorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
+        {
+            ErrorMessage = "Username and Password cannot be empty!";
+            return;
+        }
+
+        try
+        {
+            var formData = new MultipartFormDataContent
+        {
+            { new StringContent(Username), "username" },
+            { new StringContent(Password), "password" }
+        };
+
+            var apiUrl = $"{Nav.BaseUri}api/auth/login"; // <- absolute URL
+            var response = await Http.PostAsync(apiUrl, formData);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Nav.NavigateTo("/home", forceLoad: true);
+            }
+            else
+            {
+                var msg = await response.Content.ReadAsStringAsync();
+                ErrorMessage = msg;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Login failed: {ex.Message}";
+        }
+    }
+
+
+    void LoginWithGoogle()
+    {
+        Nav.NavigateTo("/login/google", forceLoad: true);
+    }
+
+    void GoToForgot()
+    {
+        Nav.NavigateTo("/forgot");
+    }
+
+    void GoToRegister()
+    {
+        Nav.NavigateTo("/register");
+    }
+}

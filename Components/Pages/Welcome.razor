@@ -1,0 +1,53 @@
+﻿@page "/welcome"
+@using BlazorApp2.Models
+
+@inject NavigationManager Navigation
+
+<div class="container mt-5 text-center">
+    <h1 class="fw-bold mb-4">Welcome to  AIML Marché 🛒</h1>
+
+    <div class="row g-4 justify-content-center">
+
+        <div class="col-md-4">
+            <div class="category-card" @onclick='() => OpenCategory("kitchen")'>
+                🥦 Kitchen Items
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="category-card" @onclick='() => OpenCategory("washroom")'>
+                🧼 Washroom Items
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="category-card" @onclick='() => OpenCategory("grocery")'>
+                🧃 Grocery Essentials
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .category-card {
+        padding: 40px;
+        border-radius: 20px;
+        background: #f5fff5;
+        font-size: 22px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+
+        .category-card:hover {
+            background: #d9f2d9;
+        }
+</style>
+
+@code {
+    void OpenCategory(string category)
+    {
+        Navigation.NavigateTo($"/category/{category}");
+    }
+}

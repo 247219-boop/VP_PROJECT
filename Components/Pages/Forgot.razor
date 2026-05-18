@@ -1,0 +1,156 @@
+﻿@page "/forgot"
+@using Microsoft.AspNetCore.Identity
+@using MailKit.Net.Smtp
+@using MimeKit
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="forgot-bg">
+    <div class="forgot-form text-center shadow-lg rounded-4 p-4">
+        <h2 class="fw-bold mb-3" style="color:#008080;">Forgot Password</h2>
+        <p style="color:#004d4d; opacity:0.85;">
+            Enter your email to reset password
+        </p>
+
+        <input @bind="Email"
+               class="form-control mb-3"
+               type="email"
+               placeholder="Email" />
+
+        <button type="button"
+                class="btn w-100 fw-bold mb-2"
+                style="background-color:#20b2aa; border-color:#008080; color:#fff; font-size:1.1rem;"
+                @onclick="ResetPasswordAsync">
+            Reset Password
+        </button>
+
+        <button type="button"
+                class="btn btn-link text-decoration-none"
+                style="color:#008080;"
+                @onclick="GoBack">
+            Back to Login
+        </button>
+
+        @if (!string.IsNullOrEmpty(Error))
+        {
+            <p class="text-danger mt-3">@Error</p>
+        }
+
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <p class="text-success mt-3">@Message</p>
+        }
+    </div>
+</div>
+
+<style>
+    .forgot-bg {
+        height: 100vh;
+        width: 100vw;
+        background-image: url('/images/pic1.png');
+        background-size: cover;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .forgot-form {
+        width: 350px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: rgba(255,255,255,0.9);
+    }
+
+    .form-control {
+        border-radius: 12px;
+        padding: 10px;
+        width: 100%;
+    }
+
+    .btn {
+        border-radius: 12px;
+        padding: 10px;
+    }
+
+        .btn:hover {
+            background-color: #008080 !important;
+            border-color: #006666 !important;
+        }
+
+    .btn-link:hover {
+        text-decoration: underline;
+    }
+</style>
+
+@code {
+    private string Email { get; set; } = "";
+    private string Error { get; set; } = "";
+    private string Message { get; set; } = "";
+
+    private async Task ResetPasswordAsync()
+    {
+        Error = "";
+        Message = "";
+
+        if (string.IsNullOrWhiteSpace(Email))
+        {
+            Error = "Please enter your email.";
+            return;
+        }
+
+        // Safely get user (handle duplicates if any)
+        var users = await UserManager.Users
+                                     .Where(u => u.Email.ToLower() == Email.ToLower())
+                                     .ToListAsync();
+        var user = users.FirstOrDefault();
+
+        if (user != null)
+        {
+            if (string.IsNullOrEmpty(user.PasswordHash))
+            {
+                Error = "This account uses Google Sign-In. Please use Google account recovery.";
+                return;
+            }
+
+            var token = await UserManager.GeneratePasswordResetTokenAsync(user);
+            var resetLink = $"{Navigation.BaseUri}reset-password?email={Email}&token={Uri.EscapeDataString(token)}";
+
+            try
+            {
+                var emailMessage = new MimeMessage();
+                emailMessage.From.Add(new MailboxAddress("B.E.N.D Grocery Mall", "bendgrocery@gmail.com"));
+                emailMessage.To.Add(MailboxAddress.Parse(Email));
+                emailMessage.Subject = "Password Reset";
+                emailMessage.Body = new TextPart("plain")
+                    {
+                        Text = $"Click this link to reset your password:\n{resetLink}"
+                    };
+                //dugb uthn gvdy llwq
+                using var smtp = new MailKit.Net.Smtp.SmtpClient(); // Explicitly use MailKit SmtpClient
+                await smtp.ConnectAsync("smtp.gmail.com", 465, true);
+                await smtp.AuthenticateAsync("bendgrocery@gmail.com", "dugb uthn gvdy llwq");
+                await smtp.SendAsync(emailMessage);
+                await smtp.DisconnectAsync(true);
+
+                Message = "If this email is registered, a password reset link has been sent.";
+            }
+            catch (Exception ex)
+            {
+                Error = $"Failed to send email: {ex.Message}";
+            }
+        }
+        else
+        {
+            // Always show success message to avoid revealing user existence
+            Message = "If this email is registered, a password reset link has been sent.";
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

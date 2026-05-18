@@ -1,0 +1,47 @@
+﻿@inject NavigationManager Navigation
+
+<div class="top-row ps-3 navbar navbar-dark bg-success">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-white"
+           href="/welcome">
+            🛒 Grocery Shopping Mall
+        </a>
+    </div>
+</div>
+
+<div class="nav-scrollable bg-light">
+    <nav class="flex-column p-3">
+
+        <NavLink class="nav-link fw-semibold"
+                 href="/login"
+                 Match="NavLinkMatch.All">
+            🔐 Login
+        </NavLink>
+
+        <NavLink class="nav-link fw-semibold"
+                 href="/welcome">
+            🏠 Welcome
+        </NavLink>
+
+        <NavLink class="nav-link fw-semibold"
+                 href="/category/kitchen">
+            🥦 Kitchen Items
+        </NavLink>
+
+        <NavLink class="nav-link fw-semibold"
+                 href="/category/grocery">
+            🧃 Grocery Items
+        </NavLink>
+
+        <NavLink class="nav-link fw-semibold"
+                 href="/category/washroom">
+            🧼 Washroom Items
+        </NavLink>
+
+        <NavLink class="nav-link fw-semibold"
+                 href="/orders">
+            📦 Orders
+        </NavLink>
+
+    </nav>
+</div>
